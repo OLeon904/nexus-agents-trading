@@ -45,7 +45,7 @@
 cd nexus-agents-trading
 npm install
 
-# Run backtest (sample strategy)
+# Run backtest (uses real SPY data if FINNHUB_API_KEY is set)
 npm run backtest
 
 # Dev server
@@ -53,6 +53,8 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+**Get running with real data:** See **[GETTING-STARTED.md](GETTING-STARTED.md)** — free signups for Neon (DB), Finnhub (market data), Alpaca (paper trading).
 
 ## Project Structure
 

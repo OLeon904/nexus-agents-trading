@@ -54,9 +54,20 @@ export default function Home() {
           </p>
         </div>
 
+        <div className="mt-12 p-6 rounded-xl bg-emerald-950/30 border border-emerald-800/50">
+          <h2 className="text-lg font-semibold mb-3 text-emerald-200">Get Running (Free)</h2>
+          <ol className="text-sm text-zinc-300 space-y-2 list-decimal list-inside">
+            <li><strong>Database:</strong> <a href="https://neon.tech" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:underline">neon.tech</a> → Sign up → Copy connection string → Add to <code className="bg-zinc-800 px-1 rounded">.env</code> as <code className="bg-zinc-800 px-1 rounded">DATABASE_URL</code></li>
+            <li><strong>Market data:</strong> <a href="https://finnhub.io/register" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:underline">finnhub.io/register</a> → Free key → Add to <code className="bg-zinc-800 px-1 rounded">.env</code> as <code className="bg-zinc-800 px-1 rounded">FINNHUB_API_KEY</code></li>
+            <li><strong>Migrations:</strong> <code className="bg-zinc-800 px-2 py-0.5 rounded">npx prisma migrate deploy</code></li>
+            <li><strong>Backtest with real data:</strong> <code className="bg-zinc-800 px-2 py-0.5 rounded">npm run backtest</code></li>
+          </ol>
+          <p className="mt-3 text-xs text-zinc-500">See GETTING-STARTED.md for full details.</p>
+        </div>
+
         <div className="mt-8 text-sm text-zinc-500">
           Run <code className="bg-zinc-800 px-2 py-0.5 rounded">npm run backtest</code> to
-          validate the sample strategy.
+          validate the sample strategy (uses real SPY data if FINNHUB_API_KEY is set).
         </div>
       </div>
     </main>
