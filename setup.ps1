@@ -7,11 +7,15 @@ $ProjectRoot = $PSScriptRoot
 Write-Host "`n=== Nexus Agents Trading - Setup ===" -ForegroundColor Cyan
 Write-Host ""
 
+# 0. Ensure Node.js in PATH (in case freshly installed)
+$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+if (Test-Path "C:\Program Files\nodejs") { $env:Path = "C:\Program Files\nodejs;$env:Path" }
+
 # 1. Check Node.js
 Write-Host "[1/6] Checking Node.js..." -ForegroundColor Yellow
 $nodePath = $null
 if (Get-Command node -ErrorAction SilentlyContinue) { $nodePath = "node" }
-elseif (Test-Path "C:\Program Files\nodejs\node.exe") { $nodePath = "C:\Program Files\nodejs\node.exe" }
+elseif (Test-Path "C:\Program Files\nodejs\node.exe") { $env:Path = "C:\Program Files\nodejs;$env:Path"; $nodePath = "node" }
 elseif (Test-Path "$env:LOCALAPPDATA\Programs\node\node.exe") { $nodePath = "$env:LOCALAPPDATA\Programs\node\node.exe" }
 
 if (-not $nodePath) {

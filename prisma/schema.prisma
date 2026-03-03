@@ -24,6 +24,7 @@ model Strategy {
   updatedAt   DateTime @updatedAt
 
   backtestRuns  BacktestRun[]
+  agents        Agent[]
   agentAllocs   AgentAllocation[]
   executions    Execution[]
 }
