@@ -52,7 +52,7 @@ export async function fetchAlphaVantageCandles(symbol: string, apiKey: string): 
     | { "Error Message"?: string; "Note"?: string };
   if ("Error Message" in json) throw new Error(json["Error Message"] ?? "Alpha Vantage error");
   if ("Note" in json) throw new Error(json.Note ?? "Rate limit");
-  const series = json["Time Series (Daily)"];
+  const series = (json as { "Time Series (Daily)"?: Record<string, { "1. open": string; "2. high": string; "3. low": string; "4. close": string; "5. volume": string }> })["Time Series (Daily)"];
   if (!series) return [];
   return Object.entries(series)
     .map(([date, o]) => ({ date, open: parseFloat(o["1. open"]), high: parseFloat(o["2. high"]), low: parseFloat(o["3. low"]), close: parseFloat(o["4. close"]), volume: parseFloat(o["5. volume"]) }))
@@ -127,7 +127,7 @@ export async function fetchTwelveDataCandles(symbol: string, apiKey: string, out
     | { values?: Array<{ datetime: string; open: string; high: string; low: string; close: string; volume: string }> }
     | { code?: number; message?: string };
   if ("message" in json && json.code !== undefined) throw new Error(json.message ?? "Twelve Data error");
-  const values = json.values;
+  const values = (json as { values?: Array<{ datetime: string; open: string; high: string; low: string; close: string; volume: string }> }).values;
   if (!values?.length) return [];
   return values
     .map((v) => ({ date: v.datetime.slice(0, 10), open: parseFloat(v.open), high: parseFloat(v.high), low: parseFloat(v.low), close: parseFloat(v.close), volume: parseFloat(v.volume) }))
