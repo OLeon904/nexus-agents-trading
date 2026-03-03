@@ -1,0 +1,134 @@
+// Nexus Agents Trading - Multi-Agent Strategy Engine
+// Inspired by Temple-Stuart (ledger/audit) + NexusTrade (strategy engineering)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ═══════════════════════════════════════════════════════════════
+// STRATEGIES (Rules-based, not LLM discretion)
+// ═══════════════════════════════════════════════════════════════
+
+model Strategy {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  status      StrategyStatus @default(DRAFT)
+  config      Json     // Conditions, signals, allocation rules
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  backtestRuns  BacktestRun[]
+  agentAllocs   AgentAllocation[]
+  executions    Execution[]
+}
+
+enum StrategyStatus {
+  DRAFT
+  BACKTESTED
+  PAPER_ACTIVE
+  LIVE_ACTIVE
+  PAUSED
+  RETIRED
+}
+
+// ═══════════════════════════════════════════════════════════════
+// AGENTS (Each agent = one deployed strategy instance)
+// ═══════════════════════════════════════════════════════════════
+
+model Agent {
+  id          String   @id @default(cuid())
+  name        String
+  strategyId  String
+  strategy    Strategy @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+  status      AgentStatus @default(PAUSED)
+  capitalPct  Float    // % of total capital allocated
+  lastSignalAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  allocations AgentAllocation[]
+  executions  Execution[]
+}
+
+enum AgentStatus {
+  PAUSED
+  PAPER_ACTIVE
+  LIVE_ACTIVE
+}
+
+model AgentAllocation {
+  id         String   @id @default(cuid())
+  agentId    String
+  agent      Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  strategyId String
+  strategy   Strategy @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+  amount     Float
+  allocatedAt DateTime @default(now())
+}
+
+// ═══════════════════════════════════════════════════════════════
+// BACKTESTING
+// ═══════════════════════════════════════════════════════════════
+
+model BacktestRun {
+  id          String   @id @default(cuid())
+  strategyId  String
+  strategy    Strategy @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+  startDate   DateTime
+  endDate     DateTime
+  initialCapital Float
+  finalCapital   Float
+  metrics     Json    // { sharpe, sortino, maxDrawdown, winRate, ... }
+  passedGate  Boolean // Did it meet net-gains threshold?
+  createdAt   DateTime @default(now())
+}
+
+// ═══════════════════════════════════════════════════════════════
+// EXECUTIONS & LEDGER (Temple-Stuart style audit trail)
+// ═══════════════════════════════════════════════════════════════
+
+model Execution {
+  id          String   @id @default(cuid())
+  agentId     String
+  agent       Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  strategyId  String
+  strategy    Strategy @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+  side        ExecutionSide
+  symbol      String
+  quantity    Float
+  price       Float
+  total       Float
+  mode        ExecutionMode
+  externalId  String?  // Broker order ID
+  createdAt   DateTime @default(now())
+}
+
+enum ExecutionSide {
+  BUY
+  SELL
+}
+
+enum ExecutionMode {
+  PAPER
+  LIVE
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DAILY P&L & NET GAINS TRACKING
+// ═══════════════════════════════════════════════════════════════
+
+model DailyPnL {
+  id          String   @id @default(cuid())
+  date        DateTime @db.Date
+  totalPnL    Float
+  agentPnLs   Json     // { agentId: pnl }
+  createdAt   DateTime @default(now())
+
+  @@unique([date])
+}
