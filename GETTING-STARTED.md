@@ -95,9 +95,12 @@ Open [http://localhost:3000](http://localhost:3000)
 
 | Service | Free Tier | Signup |
 |---------|-----------|--------|
-| **Neon** | 0.5 GB storage, 1 project | [neon.tech](https://neon.tech) |
+| **Neon** | 0.5 GB storage | [neon.tech](https://neon.tech) |
+| **Polygon** | 5 calls/min | [polygon.io](https://polygon.io) |
+| **Alpaca** | Paper trading + market data | [alpaca.markets](https://alpaca.markets) |
+| **Twelve Data** | Free tier | [twelvedata.com](https://twelvedata.com) |
+| **Alpha Vantage** | 25 calls/day | [alphavantage.co](https://www.alphavantage.co/support/#api-key) |
 | **Finnhub** | 60 calls/min | [finnhub.io/register](https://finnhub.io/register) |
-| **Alpaca** | Paper trading, IEX data | [alpaca.markets](https://alpaca.markets) |
 
 ---
 
@@ -107,11 +110,16 @@ Your `.env` should look like:
 
 ```
 DATABASE_URL="postgresql://...@xxx.neon.tech/neondb?sslmode=require"
-FINNHUB_API_KEY="xxxxxxxxxxxx"
+POLYGON_API_KEY=""
 ALPACA_API_KEY=""
 ALPACA_SECRET_KEY=""
 ALPACA_PAPER=true
+TWELVEDATA_API_KEY=""
+ALPHAVANTAGE_API_KEY=""
+FINNHUB_API_KEY=""
 ```
+
+Add any market data keys you have. Backtest tries them in order: Polygon → Alpaca → Twelve Data → Alpha Vantage → Finnhub.
 
 ---
 

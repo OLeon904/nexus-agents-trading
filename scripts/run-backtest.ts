@@ -7,10 +7,14 @@
  * Uses sample data otherwise
  */
 
-import "dotenv/config";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import dotenv from "dotenv";
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.join(__dirname, "..", ".env") });
 import { runBacktest } from "../src/lib/backtest";
 import { createSampleStrategy } from "../src/lib/strategy-engine";
-import { fetchHistoricalBars } from "../src/lib/market-data";
+import { fetchHistoricalBars, type MarketDataKeys } from "../src/lib/market-data";
 import type { PriceBar } from "../src/lib/strategy-engine";
 
 function generateSampleData(days: number): PriceBar[] {
@@ -37,21 +41,36 @@ async function main() {
   const config = createSampleStrategy();
   let data: Record<string, PriceBar[]>;
 
-  const apiKey = process.env.FINNHUB_API_KEY?.trim();
-  if (apiKey) {
-    console.log("\nFetching real market data from Finnhub...");
+  const keys: MarketDataKeys = {
+    polygonKey: process.env.POLYGON_API_KEY?.trim(),
+    alpacaKeyId: process.env.ALPACA_API_KEY?.trim(),
+    alpacaSecret: process.env.ALPACA_SECRET_KEY?.trim(),
+    alpacaPaper: process.env.ALPACA_PAPER !== "false",
+    twelveDataKey: process.env.TWELVEDATA_API_KEY?.trim(),
+    alphaVantageKey: process.env.ALPHAVANTAGE_API_KEY?.trim(),
+    finnhubKey: process.env.FINNHUB_API_KEY?.trim(),
+  };
+  const hasKey = Object.values(keys).some((v) => v && typeof v === "string");
+  if (hasKey) {
+    console.log("\nFetching real market data...");
     try {
-      data = await fetchHistoricalBars(config.universe, 365, apiKey);
+      data = await fetchHistoricalBars(config.universe, 365, keys);
       const count = Object.values(data).reduce((s, b) => s + b.length, 0);
-      console.log(`  Loaded ${count} bars for ${config.universe.join(", ")}\n`);
+      if (count > 0) {
+        console.log(`  Loaded ${count} bars for ${config.universe.join(", ")}\n`);
+      } else {
+        throw new Error("No data returned");
+      }
     } catch (err) {
-      console.error("  Finnhub fetch failed:", (err as Error).message);
-      console.log("  Falling back to sample data.\n");
+      console.error("  Fetch failed:", (err as Error).message);
+      console.log("  Falling back to sample data.");
+      console.log("  Add any: POLYGON_API_KEY, ALPACA_API_KEY+SECRET, TWELVEDATA_API_KEY, ALPHAVANTAGE_API_KEY, FINNHUB_API_KEY\n");
       data = { SPY: generateSampleData(252) };
     }
   } else {
-    console.log("\nNo FINNHUB_API_KEY in .env - using sample data.");
-    console.log("  Get free key at https://finnhub.io/register for real backtests.\n");
+    console.log("\nNo market data API keys - using sample data.");
+    console.log("  Polygon: polygon.io | Alpaca: alpaca.markets | Twelve Data: twelvedata.com");
+    console.log("  Alpha Vantage: alphavantage.co | Finnhub: finnhub.io\n");
     data = { SPY: generateSampleData(252) };
   }
 
